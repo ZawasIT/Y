@@ -1,82 +1,91 @@
 <?php
-    require_once 'includes/config.php';
-    require_once 'includes/functions.php';
+require_once 'includes/config.php';
+require_once 'includes/functions.php';
 
-    // Sprawdzenie czy użytkownik jest zalogowany
-    if (!isLoggedIn()) {
-        header('Location: login.php');
-        exit;
-    }
-
-    $currentUserId = $_SESSION['user_id'];
-
-    // Pobiera nazwę użytkownika z URL (jeśli istnieje)
-    $username = isset($_GET['user']) ? clean($_GET['user']) : null;
-
-    // Jeśli nie podano username, pokazuje profil zalogowanego użytkownika
-    if (!$username) {
-        $stmt = $pdo->prepare("SELECT username FROM users WHERE id = ?");
-        $stmt->execute([$currentUserId]);
-        $currentUserData = $stmt->fetch();
-        $username = $currentUserData['username'];
-    }
-
-    // Pobiera dane użytkownika
-    $stmt = $pdo->prepare("
-        SELECT 
-            u.*,
-            (SELECT COUNT(*) FROM posts WHERE user_id = u.id) as posts_count,
-            (SELECT COUNT(*) FROM follows WHERE follower_id = u.id) as following_count,
-            (SELECT COUNT(*) FROM follows WHERE following_id = u.id) as followers_count,
-            EXISTS(SELECT 1 FROM follows WHERE follower_id = ? AND following_id = u.id) as is_following
-        FROM users u
-        WHERE u.username = ?
-    ");
-    $stmt->execute([$currentUserId, $username]);
-    $profileUser = $stmt->fetch();
-
-    // Jeśli użytkownik nie istnieje, wraca na stronę główną
-    if (!$profileUser) {
-        header('Location: index.php');
-        exit;
-    }
-
-    // Sprawdza czy to własny profil
-    $isOwnProfile = ($profileUser['id'] == $currentUserId);
-
-    // Przekierowuje na odpowiedni plik w zależności od typu profilu
-    if ($isOwnProfile) {
-        header('Location: my_profile.php');
-    } else {
-        header('Location: user_profile.php?user=' . urlencode($profileUser['username']));
-    }
+// Sprawdza czy użytkownik jest zalogowany
+if (!isLoggedIn()) {
+    header('Location: login.php');
     exit;
+}
 
-    // Pobiera dane zalogowanego użytkownika dla sidebar
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+$currentUserId = $_SESSION['user_id'];
+
+// Pobiera nazwę użytkownika z URL lub pokazuje profil zalogowanego użytkownika
+$username = isset($_GET['user']) ? clean($_GET['user']) : null;
+
+if (!$username) {
+    // Jeśli nie podano username, pokaż profil zalogowanego użytkownika
+    $stmt = $pdo->prepare("SELECT username FROM users WHERE id = ?");
     $stmt->execute([$currentUserId]);
-    $currentUser = $stmt->fetch();
+    $currentUserData = $stmt->fetch();
+    $username = $currentUserData['username'];
+}
 
-    // Formatuje datę dołączenia
-    $joinDate = new DateTime($profileUser['created_at']);
-    $joinDateFormatted = $joinDate->format('F Y');
-    $joinDatePolish = [
-        'January' => 'styczeń',
-        'February' => 'luty',
-        'March' => 'marzec',
-        'April' => 'kwiecień',
-        'May' => 'maj',
-        'June' => 'czerwiec',
-        'July' => 'lipiec',
-        'August' => 'sierpień',
-        'September' => 'wrzesień',
-        'October' => 'październik',
-        'November' => 'listopad',
-        'December' => 'grudzień'
-    ];
-    $joinDateFormatted = str_replace(array_keys($joinDatePolish), array_values($joinDatePolish), $joinDateFormatted);
+// Pobiera pełne dane użytkownika profilu
+$stmt = $pdo->prepare("
+    SELECT 
+        u.*,
+        (SELECT COUNT(*) FROM posts WHERE user_id = u.id) as posts_count,
+        (SELECT COUNT(*) FROM follows WHERE follower_id = u.id) as following_count,
+        (SELECT COUNT(*) FROM follows WHERE following_id = u.id) as followers_count,
+        EXISTS(SELECT 1 FROM follows WHERE follower_id = ? AND following_id = u.id) as is_following
+    FROM users u
+    WHERE u.username = ?
+");
+$stmt->execute([$currentUserId, $username]);
+$profileUser = $stmt->fetch();
+
+// Jeśli użytkownik nie istnieje, wraca na stronę główną
+if (!$profileUser) {
+    header('Location: index.php');
+    exit;
+}
+
+// Sprawdza czy to własny profil
+$isOwnProfile = ($profileUser['id'] == $currentUserId);
+
+// Pobiera dane zalogowanego użytkownika dla sidebar
+$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+$stmt->execute([$currentUserId]);
+$currentUser = $stmt->fetch();
+
+// Formatuje datę dołączenia
+$joinDate = new DateTime($profileUser['created_at']);
+$joinDateFormatted = $joinDate->format('F Y');
+$joinDatePolish = [
+    'January' => 'styczeń',
+    'February' => 'luty',
+    'March' => 'marzec',
+    'April' => 'kwiecień',
+    'May' => 'maj',
+    'June' => 'czerwiec',
+    'July' => 'lipiec',
+    'August' => 'sierpień',
+    'September' => 'wrzesień',
+    'October' => 'październik',
+    'November' => 'listopad',
+    'December' => 'grudzień'
+];
+$joinDateFormatted = str_replace(array_keys($joinDatePolish), array_values($joinDatePolish), $joinDateFormatted);
+
+// Pobiera sugestie użytkowników do obserwowania (tylko dla profili innych użytkowników)
+$suggestedUsers = [];
+if (!$isOwnProfile) {
+    $stmt = $pdo->prepare("
+        SELECT id, username, full_name, bio, profile_image, verified 
+        FROM users 
+        WHERE id != ? 
+        AND id != ?
+        AND id NOT IN (
+            SELECT following_id FROM follows WHERE follower_id = ?
+        )
+        ORDER BY RAND()
+        LIMIT 3
+    ");
+    $stmt->execute([$currentUserId, $profileUser['id'], $currentUserId]);
+    $suggestedUsers = $stmt->fetchAll();
+}
 ?>
-
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -128,7 +137,7 @@
                     <span class="nav-text">Wiadomości</span>
                 </a>
 
-                <a href="my_profile.php" class="nav-item active">
+                <a href="profile.php" class="nav-item <?php echo $isOwnProfile ? 'active' : ''; ?>">
                     <svg viewBox="0 0 24 24" class="nav-icon">
                         <g><path d="M5.651 19h12.698c-.337-1.8-1.023-3.21-1.945-4.19C15.318 13.65 13.838 13 12 13s-3.317.65-4.404 1.81c-.922.98-1.608 2.39-1.945 4.19zm.486-5.56C7.627 11.85 9.648 11 12 11s4.373.85 5.863 2.44c1.477 1.58 2.366 3.8 2.632 6.46l.11 1.1H3.395l.11-1.1c.266-2.66 1.155-4.88 2.632-6.46zM12 4c-1.105 0-2 .9-2 2s.895 2 2 2 2-.9 2-2-.895-2-2-2zM8 6c0-2.21 1.791-4 4-4s4 1.79 4 4-1.791 4-4 4-4-1.79-4-4z"></path></g>
                     </svg>
@@ -228,6 +237,26 @@
                 <?php endif; ?>
 
                 <div class="profile-meta">
+                    <?php if ($profileUser['location']): ?>
+                        <span class="meta-item">
+                            <svg viewBox="0 0 24 24" class="meta-icon">
+                                <g><path d="M12 7c-1.93 0-3.5 1.57-3.5 3.5S10.07 14 12 14s3.5-1.57 3.5-3.5S13.93 7 12 7zm0 5c-.827 0-1.5-.673-1.5-1.5S11.173 9 12 9s1.5.673 1.5 1.5S12.827 12 12 12zm0-10c-4.687 0-8.5 3.813-8.5 8.5 0 5.967 7.621 11.116 7.945 11.332l.555.37.555-.37c.324-.216 7.945-5.365 7.945-11.332C20.5 5.813 16.687 2 12 2zm0 17.77c-1.665-1.241-6.5-5.196-6.5-9.27C5.5 6.916 8.416 4 12 4s6.5 2.916 6.5 6.5c0 4.073-4.835 8.028-6.5 9.27z"></path></g>
+                            </svg>
+                            <?php echo htmlspecialchars($profileUser['location']); ?>
+                        </span>
+                    <?php endif; ?>
+                    
+                    <?php if ($profileUser['website']): ?>
+                        <span class="meta-item">
+                            <svg viewBox="0 0 24 24" class="meta-icon">
+                                <g><path d="M18.36 5.64c-1.95-1.96-5.11-1.96-7.07 0L9.88 7.05 8.46 5.64l1.42-1.42c2.73-2.73 7.16-2.73 9.9 0 2.73 2.74 2.73 7.17 0 9.9l-1.42 1.42-1.41-1.42 1.41-1.41c1.96-1.96 1.96-5.12 0-7.07zm-2.12 3.53l-7.07 7.07-1.41-1.41 7.07-7.07 1.41 1.41zm-12.02.71l1.42-1.42 1.41 1.42-1.41 1.41c-1.96 1.96-1.96 5.12 0 7.07 1.95 1.96 5.11 1.96 7.07 0l1.41-1.41 1.42 1.41-1.42 1.42c-2.73 2.73-7.16 2.73-9.9 0-2.73-2.74-2.73-7.17 0-9.9z"></path></g>
+                            </svg>
+                            <a href="<?php echo htmlspecialchars($profileUser['website']); ?>" target="_blank" rel="noopener noreferrer" class="profile-website">
+                                <?php echo htmlspecialchars(parse_url($profileUser['website'], PHP_URL_HOST) ?: $profileUser['website']); ?>
+                            </a>
+                        </span>
+                    <?php endif; ?>
+                    
                     <span class="meta-item">
                         <svg viewBox="0 0 24 24" class="meta-icon">
                             <g><path d="M7 4V3h2v1h6V3h2v1h1.5C19.89 4 21 5.12 21 6.5v12c0 1.38-1.11 2.5-2.5 2.5h-13C4.12 21 3 19.88 3 18.5v-12C3 5.12 4.12 4 5.5 4H7zm0 2H5.5c-.27 0-.5.22-.5.5v12c0 .28.23.5.5.5h13c.28 0 .5-.22.5-.5v-12c0-.28-.22-.5-.5-.5H17v1h-2V6H9v1H7V6zm0 6h2v-2H7v2zm0 4h2v-2H7v2zm4-4h2v-2h-2v2zm0 4h2v-2h-2v2zm4-4h2v-2h-2v2z"></path></g>
@@ -275,26 +304,29 @@
         </div>
 
         <!-- Kogo obserwować -->
+        <?php if (!empty($suggestedUsers)): ?>
         <div class="widget">
             <h2>Kogo obserwować</h2>
+            <?php foreach ($suggestedUsers as $user): ?>
             <div class="follow-item">
-                <img src="images/default-avatar.png" alt="Avatar" onerror="this.src='https://via.placeholder.com/40'">
+                <img src="<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Avatar">
                 <div class="follow-info">
-                    <div class="follow-name">Kamil Nowicki</div>
-                    <div class="follow-username">@kamildev</div>
+                    <div class="follow-name">
+                        <?php echo htmlspecialchars($user['full_name']); ?>
+                        <?php if ($user['verified']): ?>
+                            <svg viewBox="0 0 24 24" class="verified-badge" style="width: 16px; height: 16px; fill: #1D9BF0; display: inline-block; vertical-align: middle; margin-left: 2px;">
+                                <g><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91c-1.31.67-2.2 1.91-2.2 3.34s.89 2.67 2.2 3.34c-.46 1.39-.21 2.9.8 3.91s2.52 1.26 3.91.81c.67 1.31 1.91 2.19 3.34 2.19s2.68-.88 3.34-2.19c1.39.45 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34zm-11.71 4.2l-4.3-4.29 1.42-1.42 2.88 2.88 6.79-6.79 1.42 1.42-8.21 8.2z"></path></g>
+                            </svg>
+                        <?php endif; ?>
+                    </div>
+                    <div class="follow-username">@<?php echo htmlspecialchars($user['username']); ?></div>
                 </div>
-                <button class="follow-btn">Obserwuj</button>
+                <button class="follow-btn" data-user-id="<?php echo $user['id']; ?>">Obserwuj</button>
             </div>
-            <div class="follow-item">
-                <img src="images/default-avatar.png" alt="Avatar" onerror="this.src='https://via.placeholder.com/40'">
-                <div class="follow-info">
-                    <div class="follow-name">Ola Kowalska</div>
-                    <div class="follow-username">@oladesign</div>
-                </div>
-                <button class="follow-btn">Obserwuj</button>
-            </div>
+            <?php endforeach; ?>
             <a href="#" class="show-more">Pokaż więcej</a>
         </div>
+        <?php endif; ?>
     </aside>
 
     <!-- Przekaż dane profilu jako atrybuty data -->
@@ -309,4 +341,3 @@
     <script src="js/profile.js"></script>
 </body>
 </html>
-
