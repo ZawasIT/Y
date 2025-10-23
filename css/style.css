@@ -101,7 +101,7 @@ body {
 }
 
 .nav-text {
-    font-size: 20px;
+    font-size: 18px;
 }
 
 /* Przycisk Postuj */
@@ -1173,7 +1173,7 @@ body {
 
 /* Menu kontekstowe */
 .post-menu {
-    position: fixed;
+    position: absolute; /* zmień z fixed na absolute */
     background-color: var(--bg-primary);
     border-radius: 4px;
     box-shadow: 

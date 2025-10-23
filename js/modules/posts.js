@@ -189,14 +189,16 @@ function showPostMenu(button, postId, postElement, isOwnPost) {
         `;
     }
     
-    // Pozycjonowanie menu
-    document.body.appendChild(menu);
-    const rect = button.getBoundingClientRect();
+    // Pozycjonowanie menu - przyklejone do przycisku
+    const post = button.closest('.post');
+    post.style.position = 'relative';
+    post.appendChild(menu);
     
-    const scrollY = window.scrollY || window.pageYOffset;
-    menu.style.left = `${rect.left}px`;
-    menu.style.top = `${rect.bottom + 5 + scrollY}px`;
-    menu.style.right = '';
+    const rect = button.getBoundingClientRect();
+    const postRect = post.getBoundingClientRect();
+    
+    menu.style.right = `${postRect.right - rect.right}px`;
+    menu.style.top = `${rect.bottom - postRect.top + 5}px`;
     
     // Obsługa kliknięć w menu
     menu.addEventListener('click', function(e) {
