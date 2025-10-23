@@ -8,13 +8,13 @@ ini_set('display_errors', 1);
 
 header('Content-Type: application/json');
 
-// Sprawdź czy użytkownik jest zalogowany
+// Sprawdza czy użytkownik jest zalogowany
 if (!isLoggedIn()) {
     echo json_encode(['success' => false, 'message' => 'Musisz być zalogowany']);
     exit;
 }
 
-// Sprawdź czy to POST request
+// Sprawdza czy to POST request
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false, 'message' => 'Nieprawidłowa metoda']);
     exit;
@@ -29,7 +29,7 @@ if ($postId <= 0) {
 }
 
 try {
-    // Sprawdź czy post istnieje
+    // Sprawdza czy post istnieje
     $stmt = $pdo->prepare("SELECT id, user_id FROM posts WHERE id = ?");
     $stmt->execute([$postId]);
     $post = $stmt->fetch();
@@ -39,21 +39,21 @@ try {
         exit;
     }
     
-    // Sprawdź czy użytkownik już polubił ten post
+    // Sprawdza czy użytkownik już polubił ten post
     $stmt = $pdo->prepare("SELECT id FROM likes WHERE post_id = ? AND user_id = ?");
     $stmt->execute([$postId, $userId]);
     $existingLike = $stmt->fetch();
     
     if ($existingLike) {
-        // Usuń polubienie (unlike)
+        // Usuwa polubienie (unlike)
         $stmt = $pdo->prepare("DELETE FROM likes WHERE post_id = ? AND user_id = ?");
         $stmt->execute([$postId, $userId]);
         
-        // Zaktualizuj licznik w tabeli posts
+        // Aktualizuje licznik w tabeli posts
         $stmt = $pdo->prepare("UPDATE posts SET likes_count = likes_count - 1 WHERE id = ?");
         $stmt->execute([$postId]);
         
-        // Pobierz aktualną liczbę polubień
+        // Pobiera aktualną liczbę polubień
         $stmt = $pdo->prepare("SELECT likes_count FROM posts WHERE id = ?");
         $stmt->execute([$postId]);
         $likesCount = $stmt->fetchColumn();
@@ -66,20 +66,20 @@ try {
         ]);
         
     } else {
-        // Dodaj polubienie (like)
+        // Dodaje polubienie (like)
         $stmt = $pdo->prepare("INSERT INTO likes (post_id, user_id, created_at) VALUES (?, ?, NOW())");
         $stmt->execute([$postId, $userId]);
         
-        // Zaktualizuj licznik w tabeli posts
+        // Aktualizuje licznik w tabeli posts
         $stmt = $pdo->prepare("UPDATE posts SET likes_count = likes_count + 1 WHERE id = ?");
         $stmt->execute([$postId]);
         
-        // Pobierz aktualną liczbę polubień
+        // Pobiera aktualną liczbę polubień
         $stmt = $pdo->prepare("SELECT likes_count FROM posts WHERE id = ?");
         $stmt->execute([$postId]);
         $likesCount = $stmt->fetchColumn();
         
-        // Dodaj powiadomienie (jeśli to nie własny post)
+        // Dodaje powiadomienie (jeśli to nie własny post)
         if ($post['user_id'] != $userId) {
             $stmt = $pdo->prepare("
                 INSERT INTO notifications (user_id, type, post_id, actor_id, created_at) 

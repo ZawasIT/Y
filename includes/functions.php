@@ -1,17 +1,17 @@
 <?php
 // Funkcje pomocnicze
 
-// Sprawdź czy użytkownik jest zalogowany
+// Sprawdza czy użytkownik jest zalogowany
 function isLoggedIn() {
     return isset($_SESSION['user_id']);
 }
 
-// Pobierz ID zalogowanego użytkownika
+// Pobiera ID zalogowanego użytkownika
 function getCurrentUserId() {
     return $_SESSION['user_id'] ?? null;
 }
 
-// Wymagaj zalogowania (redirect jeśli niezalogowany)
+// Wymaga zalogowania (redirect jeśli niezalogowany)
 function requireLogin() {
     if (!isLoggedIn()) {
         header('Location: login.php');
@@ -19,7 +19,7 @@ function requireLogin() {
     }
 }
 
-// Sanityzuj dane wejściowe
+// Czyści dane wejściowe
 function clean($data) {
     return htmlspecialchars(strip_tags(trim($data)), ENT_QUOTES, 'UTF-8');
 }
@@ -77,7 +77,7 @@ function formatNumber($num) {
     return $num;
 }
 
-// Generuj CSRF token
+// Generuje CSRF token
 function generateCsrfToken() {
     if (!isset($_SESSION['csrf_token'])) {
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -85,7 +85,7 @@ function generateCsrfToken() {
     return $_SESSION['csrf_token'];
 }
 
-// Weryfikuj CSRF token
+// Weryfikuje CSRF token
 function verifyCsrfToken($token) {
     return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
 }

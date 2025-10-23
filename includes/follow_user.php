@@ -9,13 +9,13 @@ ini_set('log_errors', 1);
 
 header('Content-Type: application/json');
 
-// Sprawdź czy użytkownik jest zalogowany
+// Sprawdza czy użytkownik jest zalogowany
 if (!isLoggedIn()) {
     echo json_encode(['success' => false, 'message' => 'Musisz być zalogowany']);
     exit;
 }
 
-// Sprawdź czy to POST request
+// Sprawdza czy to POST request
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false, 'message' => 'Nieprawidłowa metoda']);
     exit;
@@ -36,7 +36,7 @@ if ($userId === $followingId) {
 }
 
 try {
-    // Sprawdź czy użytkownik do obserwowania istnieje
+    // Sprawdza czy użytkownik do obserwowania istnieje
     $stmt = $pdo->prepare("SELECT id, username FROM users WHERE id = ?");
     $stmt->execute([$followingId]);
     $targetUser = $stmt->fetch();
@@ -46,7 +46,7 @@ try {
         exit;
     }
     
-    // Sprawdź czy już obserwujesz tego użytkownika
+    // Sprawdza czy już obserwujesz tego użytkownika
     $stmt = $pdo->prepare("SELECT id FROM follows WHERE follower_id = ? AND following_id = ?");
     $stmt->execute([$userId, $followingId]);
     $existingFollow = $stmt->fetch();

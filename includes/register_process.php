@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// Pobierz dane
+// Pobiera dane
 $fullName = clean($_POST['full_name'] ?? '');
 $email = clean($_POST['email'] ?? '');
 $username = clean($_POST['username'] ?? '');
@@ -57,7 +57,7 @@ if (!isValidPassword($password)) {
     exit;
 }
 
-// Sprawdź czy email już istnieje
+// Sprawdza czy email już istnieje
 $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
 $stmt->execute([$email]);
 if ($stmt->fetch()) {
@@ -69,7 +69,7 @@ if ($stmt->fetch()) {
     exit;
 }
 
-// Sprawdź czy username już istnieje
+// Sprawdza czy username już istnieje
 $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
 $stmt->execute([$username]);
 if ($stmt->fetch()) {
@@ -81,7 +81,7 @@ if ($stmt->fetch()) {
     exit;
 }
 
-// Utwórz użytkownika
+// Tworzy użytkownika
 try {
     $passwordHash = hashPassword($password);
     
@@ -94,7 +94,7 @@ try {
     
     $userId = $pdo->lastInsertId();
     
-    // Zaloguj użytkownika automatycznie
+    // Loguje użytkownika automatycznie
     $_SESSION['user_id'] = $userId;
     $_SESSION['username'] = $username;
     $_SESSION['full_name'] = $fullName;

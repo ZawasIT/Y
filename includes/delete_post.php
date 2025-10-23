@@ -4,7 +4,7 @@ require_once 'functions.php';
 
 header('Content-Type: application/json');
 
-// Sprawdź czy użytkownik jest zalogowany
+// Sprawdza czy użytkownik jest zalogowany
 if (!isLoggedIn()) {
     echo json_encode(['success' => false, 'message' => 'Musisz być zalogowany']);
     exit;
@@ -24,7 +24,7 @@ if ($postId <= 0) {
 }
 
 try {
-    // Sprawdź czy post należy do użytkownika
+    // Sprawdza czy post należy do użytkownika
     $stmt = $pdo->prepare("SELECT user_id FROM posts WHERE id = ?");
     $stmt->execute([$postId]);
     $post = $stmt->fetch();
@@ -39,7 +39,7 @@ try {
         exit;
     }
     
-    // Usuń post (triggery automatycznie usuną powiązane dane)
+    // Usuwa post (triggery automatycznie usuną powiązane dane)
     $stmt = $pdo->prepare("DELETE FROM posts WHERE id = ?");
     $stmt->execute([$postId]);
     

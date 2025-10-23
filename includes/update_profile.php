@@ -4,7 +4,7 @@ require_once 'functions.php';
 
 header('Content-Type: application/json');
 
-// Sprawdź czy użytkownik jest zalogowany
+// Sprawdza czy użytkownik jest zalogowany
 if (!isLoggedIn()) {
     echo json_encode(['success' => false, 'message' => 'Musisz być zalogowany']);
     exit;
@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $userId = $_SESSION['user_id'];
 
-// Pobierz dane z formularza
+// Pobiera dane z formularza
 $fullName = isset($_POST['full_name']) ? trim($_POST['full_name']) : '';
 $bio = isset($_POST['bio']) ? trim($_POST['bio']) : '';
 $location = isset($_POST['location']) ? trim($_POST['location']) : '';
@@ -55,7 +55,7 @@ if (!empty($errors)) {
 }
 
 try {
-    // Aktualizuj profil w bazie danych
+    // Aktualizuje profil w bazie danych
     $stmt = $pdo->prepare("
         UPDATE users 
         SET full_name = ?, 
@@ -73,7 +73,7 @@ try {
         $userId
     ]);
     
-    // Pobierz zaktualizowane dane
+    // Pobiera zaktualizowane dane
     $stmt = $pdo->prepare("SELECT full_name, bio, location, website FROM users WHERE id = ?");
     $stmt->execute([$userId]);
     $updatedUser = $stmt->fetch();

@@ -4,13 +4,13 @@ require_once 'functions.php';
 
 header('Content-Type: application/json');
 
-// Sprawdź czy użytkownik jest zalogowany
+// Sprawdza czy użytkownik jest zalogowany
 if (!isLoggedIn()) {
     echo json_encode(['success' => false, 'message' => 'Musisz być zalogowany']);
     exit;
 }
 
-// Sprawdź czy jest to żądanie POST
+// Sprawdza czy jest to żądanie POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false, 'message' => 'Nieprawidłowa metoda']);
     exit;
@@ -36,7 +36,7 @@ if (mb_strlen($content) > 280) {
     exit;
 }
 
-// Sprawdź czy post istnieje
+// Sprawdza czy post istnieje
 $stmt = $pdo->prepare("SELECT id FROM posts WHERE id = ?");
 $stmt->execute([$postId]);
 if (!$stmt->fetch()) {
@@ -45,13 +45,13 @@ if (!$stmt->fetch()) {
 }
 
 try {
-    // Dodaj odpowiedź do bazy
+    // Dodaje odpowiedź do bazy
     $stmt = $pdo->prepare("INSERT INTO replies (post_id, user_id, content) VALUES (?, ?, ?)");
     $stmt->execute([$postId, $userId, $content]);
     
     $replyId = $pdo->lastInsertId();
     
-    // Pobierz dane nowo utworzonej odpowiedzi z danymi użytkownika
+    // Pobiera dane nowo utworzonej odpowiedzi z danymi użytkownika
     $stmt = $pdo->prepare("
         SELECT 
             r.*,

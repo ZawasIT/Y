@@ -4,7 +4,7 @@ require_once 'functions.php';
 
 header('Content-Type: application/json');
 
-// Sprawdź czy użytkownik jest zalogowany
+// Sprawdza czy użytkownik jest zalogowany
 if (!isLoggedIn()) {
     echo json_encode(['success' => false, 'message' => 'Musisz być zalogowany']);
     exit;
@@ -30,7 +30,7 @@ if (mb_strlen($content) > 280) {
 }
 
 try {
-    // Utwórz post
+    // Tworzy post
     $stmt = $pdo->prepare("
         INSERT INTO posts (user_id, content, created_at) 
         VALUES (?, ?, NOW())
@@ -39,7 +39,7 @@ try {
     
     $postId = $pdo->lastInsertId();
     
-    // Pobierz utworzony post z danymi użytkownika
+    // Pobiera utworzony post z danymi użytkownika
     $stmt = $pdo->prepare("
         SELECT 
             p.*,
