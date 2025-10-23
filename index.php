@@ -246,6 +246,19 @@
         </div>
     </aside>
 
+    <!-- Helper functions -->
+    <script src="js/utils/helpers.js"></script>
+
+    <!-- UI Components -->
+    <script src="js/modules/ui.js"></script>
+
+    <!-- Modules -->
+    <script src="js/modules/interactions.js"></script>
+    <script src="js/modules/posts.js"></script>
+    <script src="js/modules/replies.js"></script>
+
+    <!-- Main entry point -->
     <script src="js/main.js"></script>
+
 </body>
 </html>
