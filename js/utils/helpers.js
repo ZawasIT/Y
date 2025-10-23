@@ -39,7 +39,7 @@ function formatTimeAgo(dateString) {
 }
 
 /**
- * Get profile data from DOM
+ * Get profile data from DOM (for profile.php)
  */
 function getProfileData() {
     const profileData = document.getElementById('profile-data');
@@ -51,6 +51,29 @@ function getProfileData() {
         userId: parseInt(profileData.dataset.userId),
         username: profileData.dataset.username,
         isOwnProfile: profileData.dataset.isOwnProfile === 'true'
+    };
+}
+
+/**
+ * Get current logged-in user data from DOM (works on all pages)
+ */
+function getCurrentUserData() {
+    // Try getting from current-user-data (index.php)
+    let userData = document.getElementById('current-user-data');
+    
+    // If not found, try getting from profile-data (profile.php)
+    if (!userData) {
+        userData = document.getElementById('profile-data');
+    }
+    
+    if (!userData) {
+        console.warn('No user data element found in DOM');
+        return null;
+    }
+    
+    return {
+        userId: parseInt(userData.dataset.userId),
+        username: userData.dataset.username
     };
 }
 
@@ -87,6 +110,7 @@ if (typeof module !== 'undefined' && module.exports) {
         formatNumber,
         formatTimeAgo,
         getProfileData,
+        getCurrentUserData,
         fixImageErrors,
         preventDefaultHashLinks
     };

@@ -7,7 +7,6 @@ function createPostElement(post) {
     const postDiv = document.createElement('article');
     postDiv.className = 'post';
     postDiv.dataset.postId = post.id;
-    postDiv.dataset.postUserId = post.user_id; // DODANE: user_id do post element
     
     // Konwertuj is_liked i is_reposted na boolean
     const isLiked = post.is_liked == 1 || post.is_liked === true;
@@ -172,7 +171,7 @@ function showPostMenu(button, postId, postElement, isOwnPost) {
                 Edytuj
             </button>
             <button class="menu-item delete-post" data-post-id="${postId}">
-                <svg viewBox="0 0 24 24" class="menu-icon">
+                <svg viewBox="0 0 24 24" class="menu-icon" style="fill: #F4212E;">
                     <g><path d="M16 6V4.5C16 3.12 14.88 2 13.5 2h-3C9.11 2 8 3.12 8 4.5V6H3v2h1.06l.81 11.21C4.98 20.78 6.28 22 7.86 22h8.27c1.58 0 2.88-1.22 3-2.79L19.93 8H21V6h-5zm-6-1.5c0-.28.22-.5.5-.5h3c.27 0 .5.22.5.5V6h-4V4.5zm7.13 14.57c-.04.52-.47.93-1 .93H7.86c-.53 0-.96-.41-1-.93L6.07 8h11.85l-.79 11.07z"></path></g>
                 </svg>
                 Usuń
@@ -181,7 +180,7 @@ function showPostMenu(button, postId, postElement, isOwnPost) {
     } else {
         menu.innerHTML = `
             <button class="menu-item report-post" data-post-id="${postId}">
-                <svg viewBox="0 0 24 24" class="menu-icon">
+                <svg viewBox="0 0 24 24" class="menu-icon" style="fill: #F4212E;">
                     <g><path d="M3 2l18 20-1.4 1.4L17.4 21H3V2zm0 17h12.4L4 7.6V19zM21 2v15l-2-2V4H7.6L5.6 2H21z"></path></g>
                 </svg>
                 Zgłoś
@@ -426,25 +425,11 @@ function initPostMenuHandlers() {
             e.stopPropagation();
             const post = moreBtn.closest('.post');
             const postId = post.dataset.postId;
-            const postUserId = parseInt(post.dataset.postUserId);
             
-            // Pobierz dane zalogowanego użytkownika
-            const currentUser = getCurrentUserData();
-            
-            if (!currentUser) {
-                console.error('Nie można pobrać danych zalogowanego użytkownika');
-                return;
-            }
-            
-            // Porównaj ID użytkowników
-            const isOwnPost = currentUser.userId === postUserId;
-            
-            console.log('Post menu:', {
-                postId,
-                postUserId,
-                currentUserId: currentUser.userId,
-                isOwnPost
-            });
+            const profileData = getProfileData();
+            const postAuthorUsername = post.querySelector('.author-username').textContent.replace('@', '');
+            const currentUserUsername = profileData ? profileData.username : null;
+            const isOwnPost = postAuthorUsername === currentUserUsername;
             
             showPostMenu(moreBtn, postId, post, isOwnPost);
         }

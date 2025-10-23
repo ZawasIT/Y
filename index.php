@@ -246,6 +246,12 @@
         </div>
     </aside>
 
+    <div id="current-user-data" 
+         data-user-id="<?php echo $currentUser['id']; ?>"
+         data-username="<?php echo htmlspecialchars($currentUser['username']); ?>"
+         style="display: none;">
+    </div>
+
     <!-- Helper functions -->
     <script src="js/utils/helpers.js"></script>
 

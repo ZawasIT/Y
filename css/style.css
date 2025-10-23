@@ -1169,21 +1169,25 @@ body {
     fill: var(--accent-blue);
 }
 
-/* ===== MENU KONTEKSTOWE POSTÓW ===== */
+/* ===== MENU KONTEKSTOWE POSTÓW - ZAKTUALIZOWANE STYLE ===== */
 
+/* Menu kontekstowe */
 .post-menu {
     position: fixed;
     background-color: var(--bg-primary);
     border-radius: 4px;
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15), 
-                0 8px 16px rgba(0, 0, 0, 0.35);
+    box-shadow: 
+        0 0 0 1px rgba(255, 255, 255, 0.15), 
+        0 8px 16px rgba(0, 0, 0, 0.35),
+        0 4px 24px rgba(0, 0, 0, 0.25);
     min-width: 200px;
+    max-width: 240px;
     z-index: 1000;
     overflow: hidden;
-    animation: slideDown 0.2s ease;
+    animation: slideDownMenu 0.2s ease;
 }
 
-@keyframes slideDown {
+@keyframes slideDownMenu {
     from {
         opacity: 0;
         transform: translateY(-10px);
@@ -1194,6 +1198,7 @@ body {
     }
 }
 
+/* Elementy menu */
 .menu-item {
     width: 100%;
     padding: 12px 16px;
@@ -1214,18 +1219,35 @@ body {
     background-color: var(--bg-hover);
 }
 
+/* Edytuj - normalny kolor */
+.menu-item.edit-post {
+    color: var(--text-primary);
+}
+
+/* Usuń - czerwony */
 .menu-item.delete-post {
     color: #F4212E;
 }
 
+.menu-item.delete-post:hover {
+    background-color: rgba(244, 33, 46, 0.1);
+}
+
+/* Zgłoś - czerwony */
 .menu-item.report-post {
     color: #F4212E;
 }
 
+.menu-item.report-post:hover {
+    background-color: rgba(244, 33, 46, 0.1);
+}
+
+/* Ikony w menu */
 .menu-icon {
     width: 18px;
     height: 18px;
     fill: currentColor;
+    flex-shrink: 0;
 }
 
 /* Przycisk "więcej" (trzy kropki) */
@@ -1256,3 +1278,60 @@ body {
     fill: currentColor;
 }
 
+/* Responsywność dla małych ekranów */
+@media (max-width: 688px) {
+    .post-menu {
+        min-width: 180px;
+        max-width: 220px;
+    }
+    
+    .menu-item {
+        padding: 14px 16px;
+        font-size: 14px;
+    }
+}
+
+/* Dodatkowe style dla lepszego UX */
+.menu-item:first-child {
+    border-radius: 4px 4px 0 0;
+}
+
+.menu-item:last-child {
+    border-radius: 0 0 4px 4px;
+}
+
+.menu-item:only-child {
+    border-radius: 4px;
+}
+
+/* Active state dla touchscreenów */
+.menu-item:active {
+    transform: scale(0.98);
+}
+
+/* Focus dla dostępności (accessibility) */
+.menu-item:focus {
+    outline: 2px solid var(--accent-blue);
+    outline-offset: -2px;
+}
+
+.post-more:focus {
+    outline: 2px solid var(--accent-blue);
+    outline-offset: 2px;
+}
+
+/* Animacja przy zamykaniu */
+.post-menu.closing {
+    animation: slideUpMenu 0.2s ease forwards;
+}
+
+@keyframes slideUpMenu {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
